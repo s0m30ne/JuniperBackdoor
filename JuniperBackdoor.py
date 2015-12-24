@@ -113,7 +113,7 @@ usage:
         if country == "ALL":
             query = "22.ssh.banner.software_version:NetScreen"
         else:
-            query = "22.ssh.banner.software_version:NetScreen location.country:%s" % country
+            query = "22.ssh.banner.software_version:NetScreen AND location.country:%s" % country
     getIp(query, cur_page)
     if not queue.empty():
         test()

